@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useAuthenticator } from '@aws-amplify/ui-react';
 import type { Schema } from "../amplify/data/resource";
 import { generateClient } from "aws-amplify/data";
+import { TodoCreateForm } from "./ui-components";
+
 
 const client = generateClient<Schema>();
 
@@ -17,7 +19,10 @@ function App() {
   }, []);
 
   function createTodo() {
-    client.models.Todo.create({ content: window.prompt("Todo content") });
+    client.models.Todo.create({ 
+      content: window.prompt("Todo content"), 
+      isDone: false 
+    });
   }
 
   
@@ -34,7 +39,7 @@ function App() {
         {todos.map((todo) => (<li 
 			onClick={() => deleteTodo(todo.id)}
 			key={todo.id}>
-			{todo.content}</li>
+			task:{todo.content}   done: {todo.isDone}</li>
         ))}
       </ul>
       <div>
@@ -44,7 +49,16 @@ function App() {
           Review next step of this tutorial.
         </a>
       </div>
+      <div>
+
+      </div>
       <button onClick={signOut}>Sign out</button>
+      <div>
+        <a href="./startpage.html">Start page</a>
+      </div>
+      <div>
+        <TodoCreateForm />
+      </div>
     </main>
   );
 }

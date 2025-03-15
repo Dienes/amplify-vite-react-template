@@ -7,11 +7,87 @@ specifies that any user authenticated via an API key can "create", "read",
 "update", and "delete" any "Todo" records.
 =========================================================================*/
 const schema = a.schema({
+  MailingAddress: a.customType({
+    number: a.string().required(),
+    streetAddress: a.string().required(),
+    apartmentNumber: a.string(),
+    city: a.string().required(),
+    state: a.string(),
+    zipcode: a.integer(),
+  }),
+
+  Company: a.model({
+    company: a.string().required(),
+    patientPhoneNumber: a.phone(),
+    providerPhoneNumber: a.phone(),
+    faxNumber: a.phone(),
+    providerPortal: a.url(),
+    address: a.ref('MailingAddress'),
+    // medical guidelines pdf?
+  })
+  .authorization(allow => [allow.authenticated()]),
+
+  InsuranceCoverage: a.customType({
+    company: a.ref('Company').required(),
+    planName: a.string().required(),
+    memberID: a.string().required(),
+    groupNumber: a.string(),
+    startDate: a.date(),
+    endDate: a.date(),
+    cardScanFiles: a.string().array(),
+  }),
+
+  Doctor: a.model({
+    name: a.string().required(),
+    address: a.ref('Address'),
+    phoneNumber: a.phone(),
+    faxNumber: a.phone(),
+  })
+  .authorization(allow => [allow.authenticated()]),
+
   Todo: a
     .model({
       content: a.string(),
+      isDone: a.boolean(),
     })
   .authorization(allow => [allow.owner()]),
+  Patient: a
+    .model({
+      lastName: a.string(),
+      firstName: a.string(), // preferred name
+      legalName: a.string(), // if different from preferred name
+      pronouns: a.string(),
+      sex: a.string(),
+      legalSex: a.string(), // if different
+      phoneNumber: a.phone(),
+      email: a.email(),
+      address: a.string(),
+      birthDate: a.date(),
+      licenseScanFiles: a.string().array(),
+      treatmentArea: a.string(),
+      useInsurance: a.boolean(),
+      insurancePlans: a.ref('InsuranceCoverage').array(),
+      pcp: a.ref('Doctor'),
+      hasPCPLetter: a.boolean(),
+      pcpLetterScanFile: a.string(),
+      therapist: a.ref('Doctor'),
+      hasTherapistLetter: a.boolean(),
+      therapistLetterScanFile: a.string(),
+      seenSurgeon: a.boolean(),
+      surgeon: a.ref('Doctor'),
+      surgeryDate: a.date(),
+      // medical info for insurance
+      socialTransitionTime: a.string(),
+      hormoneInfo: a.string(),
+      timeWithPCP: a.string(),
+      intakeFormDone: a.boolean(),
+      intakeFormFile: a.string(),
+      releaseOfInformationDone: a.boolean(),
+      releaseScanFile: a.string(),
+      mnpoeDone: a.boolean(),
+      mnpoeScanFile: a.string(),
+    })
+  .authorization(allow => [allow.authenticated()]),
 });
 
 export type Schema = ClientSchema<typeof schema>;
