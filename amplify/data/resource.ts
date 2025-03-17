@@ -16,32 +16,40 @@ const schema = a.schema({
     zipcode: a.integer(),
   }),
 
-  Company: a.model({
-    company: a.string().required(),
+  InsurancePlan: a.model({
+    companyName: a.string().required(),
+    planName: a.string().required(),
     patientPhoneNumber: a.phone(),
     providerPhoneNumber: a.phone(),
     faxNumber: a.phone(),
     providerPortal: a.url(),
     address: a.ref('MailingAddress'),
+    plans: a.hasMany('InsuranceCoverage', 'insurancePlanId'),
     // medical guidelines pdf?
   })
   .authorization(allow => [allow.authenticated()]),
 
-  InsuranceCoverage: a.customType({
-    company: a.ref('Company').required(),
-    planName: a.string().required(),
-    memberID: a.string().required(),
+  InsuranceCoverage: a.model({
+    insurancePlanId: a.id().required(),
+    insurancePlan: a.belongsTo('InsurancePlan', 'insurancePlanId'),
+    patientId: a.id().required(),
+    patient: a.belongsTo('Patient', 'patientId'),
+    memberID: a.id().required(),
     groupNumber: a.string(),
     startDate: a.date(),
     endDate: a.date(),
     cardScanFiles: a.string().array(),
-  }),
+  })
+  .authorization(allow => [allow.authenticated()]),
 
   Doctor: a.model({
     name: a.string().required(),
-    address: a.ref('Address'),
+    address: a.ref('MailingAddress'),
     phoneNumber: a.phone(),
     faxNumber: a.phone(),
+    pcpPatients: a.hasMany('Patient', 'pcpId'),
+    therapistPatients: a.hasMany('Patient', 'therapistId'),
+    surgeonPatients: a.hasMany('Patient', 'surgeonId'),
   })
   .authorization(allow => [allow.authenticated()]),
 
@@ -66,15 +74,18 @@ const schema = a.schema({
       licenseScanFiles: a.string().array(),
       treatmentArea: a.string(),
       useInsurance: a.boolean(),
-      insurancePlans: a.ref('InsuranceCoverage').array(),
-      pcp: a.ref('Doctor'),
+      plans: a.hasMany('InsuranceCoverage', 'patientId'),
+      pcpId: a.id(),
+      pcp: a.belongsTo('Doctor', 'pcpId'),
       hasPCPLetter: a.boolean(),
       pcpLetterScanFile: a.string(),
-      therapist: a.ref('Doctor'),
+      therapistId: a.id(),
+      therapist: a.belongsTo('Doctor', 'therapistId'),
       hasTherapistLetter: a.boolean(),
       therapistLetterScanFile: a.string(),
       seenSurgeon: a.boolean(),
-      surgeon: a.ref('Doctor'),
+      surgeonId: a.id(),
+      surgeon: a.belongsTo('Doctor', 'surgeonId'),
       surgeryDate: a.date(),
       // medical info for insurance
       socialTransitionTime: a.string(),
